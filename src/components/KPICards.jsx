@@ -109,7 +109,7 @@ const KPICards = () => {
           </div>
           <Users className="w-10 h-10 text-emerald-500" />
         </div>
-        <p className="text-xs text-gray-500 mt-4">Con seguimiento este mes</p>
+        <p className="text-xs text-gray-500 mt-4">En seguimiento activo</p>
       </div>
 
       {/* Eficiencia Operativa - Dinámico */}
