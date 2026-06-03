@@ -45,3 +45,35 @@
     bottom: 0 !important;
     right: 0 !important;
 }
+
+/* Oculta por completo el botón flotante original redondo de la esquina */
+.embeddedServiceHelpButton, 
+.embeddedServiceIcon,
+#esw_button_trigger,
+.flatButton {
+    display: none !important;
+}
+
+/* Fuerza al contenedor principal de Salesforce a ocupar TODO tu espacio disponible */
+#agentforce-chat-container .embeddedServiceBootstrap,
+#agentforce-chat-container .embeddedservice-chat-header,
+#agentforce-chat-container .sidebar-container {
+    position: relative !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-height: 100% !important;
+    max-width: 100% !important;
+    box-shadow: none !important; /* Quita sombras innecesarias si quieres que se fusione con tu diseño */
+}
+
+/* Asegura que el iframe o contenedor interno de mensajes no colapse a 0px */
+#agentforce-chat-container iframe,
+#agentforce-chat-container .chat-content {
+    height: 100% !important;
+    width: 100% !important;
+}
+#agentforce-chat-container .embeddedservice-chat-header { display: none !important; }
