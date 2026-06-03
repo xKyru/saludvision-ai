@@ -10,7 +10,7 @@ const ChatAgent = () => {
           window.embeddedservice_bootstrap.init(
             '00Dg500000ApMtZ',
             'Agente_de_Servicio_de_Agentforce',
-            'https://orgfarm-5f6fd17f81-dev-ed.develop.my.site.com/ESWAgentedeServiciode1780107216442',
+            'https://orgfarm-5f6fd17f81-dev-ed.develop.my.site.com/ESWAgentedeServicio',
             {
               scrt2URL: 'https://orgfarm-5f6fd17f81-dev-ed.develop.my.salesforce-scrt.com'
             }
