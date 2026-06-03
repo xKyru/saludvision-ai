@@ -66,7 +66,7 @@ const PatientsRisk = () => {
 
   const uniqueConditionsCount = conditionData.length;
 
-  // Renderizado en estado de carga
+  // Renderizado en estado de carg
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center p-20 text-center">
