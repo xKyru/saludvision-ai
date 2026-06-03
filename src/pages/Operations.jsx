@@ -5,33 +5,51 @@ import {
   PieChart, Pie, Cell, LineChart, Line 
 } from 'recharts';
 
-const COLORS = ['#3b82f6', '#10b981', '#ef4444', '#f59e0b'];
+const COLORS = ['#3b82f6', '#ef4444', '#f59e0b', '#10b981'];
 
 const Operations = () => {
   const [data, setData] = useState({
     totalCases: 0,
     openCases: 0,
     highRiskPatients: 0,
-    efficiency: 78
+    efficiency: 82
   });
+  const [casesByStatus, setCasesByStatus] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Llamadas paralelas a tus APIs
         const [casesRes, patientsRes] = await Promise.all([
           axios.get('/api/cases'),
           axios.get('/api/patients')
         ]);
 
+        const cases = casesRes.data.records || [];
+
+        // Agrupación por Estado para gráfico de barras
+        const statusMap = cases.reduce((acc, curr) => {
+          const status = curr.status || 'New';
+          acc[status] = (acc[status] || 0) + 1;
+          return acc;
+        }, {});
+
+        const statusData = Object.keys(statusMap).map((key, index) => ({
+          name: key,
+          value: statusMap[key],
+          fill: COLORS[index % COLORS.length]
+        }));
+
+        setCasesByStatus(statusData);
+
         setData({
-          totalCases: casesRes.data.total || 26,
-          openCases: casesRes.data.open || 12,
-          highRiskPatients: patientsRes.data.records?.length || 4,
-          efficiency: 82
+          totalCases: casesRes.data.total || 0,
+          openCases: casesRes.data.open || 0,
+          highRiskPatients: patientsRes.data.records?.length || 0,
+          efficiency: 84
         });
+
         setLoading(false);
       } catch (err) {
         console.error(err);
@@ -44,12 +62,11 @@ const Operations = () => {
   }, []);
 
   if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center p-20">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-        <p className="text-xl font-medium text-gray-600">Cargando métricas operativas...</p>
-      </div>
-    );
+    return <div className="flex flex-col items-center justify-center p-20">Cargando métricas operativas...</div>;
+  }
+
+  if (error) {
+    return <div className="card p-10 text-red-600 text-center">{error}</div>;
   }
 
   return (
@@ -80,24 +97,21 @@ const Operations = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Gráfico de Casos vs Riesgo */}
+        {/* Gráfico de Barras - Casos por Estado */}
         <div className="card p-6">
-          <h3 className="section-title">Evolución Operativa</h3>
+          <h3 className="section-title">Casos por Estado</h3>
           <ResponsiveContainer width="100%" height={340}>
-            <BarChart data={[
-              { mes: 'May', casos: data.totalCases, riesgo: data.highRiskPatients * 5 },
-            ]}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="mes" />
+            <BarChart data={casesByStatus.length > 0 ? casesByStatus : [{name: 'Sin datos', value: 1}]}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+              <XAxis dataKey="name" />
               <YAxis />
               <Tooltip />
-              <Bar dataKey="casos" fill="#3b82f6" name="Casos Clínicos" />
-              <Bar dataKey="riesgo" fill="#ef4444" name="Riesgo (Escala)" />
+              <Bar dataKey="value" fill="#3b82f6" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
 
-        {/* Distribución General */}
+        {/* Gráfico Circular - Distribución Pacientes vs Casos */}
         <div className="card p-6">
           <h3 className="section-title">Distribución General</h3>
           <ResponsiveContainer width="100%" height={340}>
@@ -106,13 +120,14 @@ const Operations = () => {
                 data={[
                   { name: 'Casos Abiertos', value: data.openCases, fill: '#ef4444' },
                   { name: 'Pacientes Alto Riesgo', value: data.highRiskPatients, fill: '#f59e0b' },
-                  { name: 'Otros', value: 60, fill: '#10b981' },
+                  { name: 'Casos Cerrados', value: Math.max(0, data.totalCases - data.openCases), fill: '#10b981' },
                 ]}
                 cx="50%"
                 cy="50%"
                 innerRadius={70}
                 outerRadius={120}
                 dataKey="value"
+                label={({ name, percent }) => percent > 8 ? `${name} (${(percent * 100).toFixed(0)}%)` : ''}
               >
                 <Cell fill="#ef4444" />
                 <Cell fill="#f59e0b" />
@@ -124,13 +139,14 @@ const Operations = () => {
         </div>
       </div>
 
-      {/* Insight Estratégico */}
+      {/* Insight Estratégico Mejorado */}
       <div className="card mt-8 p-8 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100">
         <h3 className="text-xl font-semibold text-gray-800 mb-4">Insight Estratégico</h3>
         <p className="text-gray-700 leading-relaxed">
-          La clínica presenta <strong>{data.openCases} casos abiertos</strong> y 
-          <strong> {data.highRiskPatients} pacientes de alto riesgo</strong>. 
-          Se recomienda priorizar recursos en estos grupos para evitar saturación operativa.
+          La clínica presenta actualmente <strong>{data.openCases} casos abiertos</strong> y 
+          <strong> {data.highRiskPatients} pacientes de alto riesgo</strong>.
+          {data.openCases > 10 && " Se recomienda asignar más recursos al equipo clínico para evitar saturación."}
+          {data.highRiskPatients > 5 && " Los pacientes de alto riesgo requieren seguimiento prioritario."}
         </p>
       </div>
     </div>

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell
+import { 
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
+  PieChart, Pie, Cell 
 } from 'recharts';
 
 const COLORS = ['#ef4444', '#f59e0b', '#3b82f6', '#10b981'];
@@ -10,6 +10,7 @@ const COLORS = ['#ef4444', '#f59e0b', '#3b82f6', '#10b981'];
 const ClinicalCases = () => {
   const [casesData, setCasesData] = useState([]);
   const [priorityData, setPriorityData] = useState([]);
+  const [statusData, setStatusData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -21,11 +22,9 @@ const ClinicalCases = () => {
 
         setCasesData(records);
 
-        // Agrupación por prioridad (adaptado a valores en inglés)
+        // === Agrupación por Prioridad ===
         const priorityMap = records.reduce((acc, curr) => {
           let prio = curr.priority || 'Medium';
-
-          // Normalizar nombres para mostrar bonito
           if (prio === 'High') prio = 'Alta';
           else if (prio === 'Medium') prio = 'Media';
           else if (prio === 'Low') prio = 'Baja';
@@ -34,17 +33,29 @@ const ClinicalCases = () => {
           return acc;
         }, {});
 
-        const formattedPriorities = Object.keys(priorityMap).map((key, index) => ({
+        setPriorityData(Object.keys(priorityMap).map((key, index) => ({
           name: key,
           value: priorityMap[key],
           fill: COLORS[index % COLORS.length]
-        }));
+        })));
 
-        setPriorityData(formattedPriorities);
+        // === Agrupación por Estado (Nuevo) ===
+        const statusMap = records.reduce((acc, curr) => {
+          const status = curr.status || 'New';
+          acc[status] = (acc[status] || 0) + 1;
+          return acc;
+        }, {});
+
+        setStatusData(Object.keys(statusMap).map((key, index) => ({
+          name: key,
+          value: statusMap[key],
+          fill: COLORS[index % COLORS.length]
+        })));
+
         setLoading(false);
       } catch (err) {
         console.error("Error fetching cases:", err);
-        setError(err.response?.data?.error || err.message || 'Error al cargar casos clínicos');
+        setError(err.response?.data?.error || err.message);
         setLoading(false);
       }
     };
@@ -53,29 +64,16 @@ const ClinicalCases = () => {
   }, []);
 
   const totalCases = casesData.length;
-  const openCases = casesData.filter(c =>
-    c.status === 'New' || c.status === 'Working' || c.status === 'Escalated' || !c.status
+  const openCases = casesData.filter(c => 
+    c.status === 'New' || c.status === 'Working' || c.status === 'Escalated'
   ).length;
 
-  const highPriorityCount = casesData.filter(c => c.priority === 'High' || c.priority === 'Alta').length;
+  const highPriorityCount = casesData.filter(c => 
+    c.priority === 'High' || c.priority === 'Alta'
+  ).length;
 
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center p-20">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-        <p className="text-xl font-medium text-gray-600">Cargando casos clínicos desde Salesforce...</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="card border border-red-200 bg-red-50 p-10 text-center max-w-2xl mx-auto mt-12">
-        <h2 className="text-2xl font-bold text-red-700 mb-3">Error de Conexión</h2>
-        <p className="text-red-600">{error}</p>
-      </div>
-    );
-  }
+  if (loading) return <div className="flex flex-col items-center justify-center p-20">Cargando...</div>;
+  if (error) return <div className="card p-10 text-red-600 text-center">{error}</div>;
 
   return (
     <div>
@@ -101,11 +99,11 @@ const ClinicalCases = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Gráfico de Barras - Casos por Prioridad (Mejorado) */}
+        {/* Gráfico de Barras - Casos por Estado */}
         <div className="card p-6">
-          <h3 className="section-title">Casos por Prioridad</h3>
+          <h3 className="section-title">Casos por Estado</h3>
           <ResponsiveContainer width="100%" height={340}>
-            <BarChart data={priorityData}>
+            <BarChart data={statusData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
               <XAxis dataKey="name" />
               <YAxis />
@@ -139,7 +137,7 @@ const ClinicalCases = () => {
         </div>
       </div>
 
-      {/* Tabla de Casos */}
+      {/* Tabla de Casos Recientes */}
       <div className="card mt-8">
         <h3 className="section-title">Casos Recientes</h3>
         <div className="overflow-x-auto">
@@ -153,18 +151,16 @@ const ClinicalCases = () => {
               </tr>
             </thead>
             <tbody>
-              {casesData.slice(0, 8).map((c, i) => (
+              {casesData.slice(0, 10).map((c, i) => (
                 <tr key={i} className="border-b hover:bg-gray-50">
                   <td className="py-4 px-4 font-medium">{c.caseNumber}</td>
                   <td className="py-4 px-4 text-gray-700">{c.subject}</td>
                   <td className="py-4 px-4">
                     <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium
-                          ${c.priority === 'High' || c.priority === 'Alta' ? 'bg-red-100 text-red-700' :
-                        c.priority === 'Medium' ? 'bg-yellow-100 text-yellow-700' :
-                          'bg-blue-100 text-blue-700'}`}>
-                      {c.priority === 'High' ? 'Alta' :
-                        c.priority === 'Medium' ? 'Media' :
-                          c.priority === 'Low' ? 'Baja' : c.priority}
+                          ${(c.priority === 'High' || c.priority === 'Alta') ? 'bg-red-100 text-red-700' : 
+                            c.priority === 'Medium' ? 'bg-yellow-100 text-yellow-700' : 
+                            'bg-blue-100 text-blue-700'}`}>
+                      {c.priority === 'High' ? 'Alta' : c.priority === 'Medium' ? 'Media' : 'Baja'}
                     </span>
                   </td>
                   <td className="py-4 px-4">
