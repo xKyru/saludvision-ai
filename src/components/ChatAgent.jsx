@@ -7,18 +7,16 @@ const ChatAgent = () => {
   useEffect(() => {
     let bootstrapScript = null;
 
-    const initEmbeddedMessaging = async () => {
+    const initEmbeddedMessaging = () => {
       try {
         if (window.embeddedservice_bootstrap) {
           window.embeddedservice_bootstrap.settings.language = 'es';
           
-          // 1. Asignamos el contenedor
           const container = document.getElementById('agentforce-chat-container');
           if (container) {
             window.embeddedservice_bootstrap.settings.targetElement = container;
           }
           
-          // 2. Inicializamos la configuración
           window.embeddedservice_bootstrap.init(
             '00Dg500000ApMtZ',
             'Agente_SaludVision_Prod',
@@ -28,13 +26,11 @@ const ChatAgent = () => {
             }
           );
     
-          // 3. Forzar la apertura automática del chat dentro del contenedor
-          // Le damos un mini timeout para asegurar que el DOM de Salesforce esté listo
-          setTimeout(() => {
-            if (window.embeddedservice_bootstrap.autoOpenChat) {
-              window.embeddedservice_bootstrap.autoOpenChat();
-            }
-          }, 500);
+          // NUEVO: Escuchar cuando el bootstrap esté listo y lanzar el comando de apertura
+          window.addEventListener("onEmbeddedMessagingReady", () => {
+            // Lanza el comando nativo para maximizar/abrir el chat automáticamente
+            window.embeddedservice_bootstrap.utilAPI.launchChat();
+          });
     
           setIsLoading(false);
         }
