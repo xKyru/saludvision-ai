@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { 
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
-  PieChart, Pie, Cell 
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell
 } from 'recharts';
 
 const COLORS = ['#ef4444', '#f59e0b', '#3b82f6', '#10b981'];
@@ -24,7 +24,7 @@ const ClinicalCases = () => {
         // Agrupación por prioridad (adaptado a valores en inglés)
         const priorityMap = records.reduce((acc, curr) => {
           let prio = curr.priority || 'Medium';
-          
+
           // Normalizar nombres para mostrar bonito
           if (prio === 'High') prio = 'Alta';
           else if (prio === 'Medium') prio = 'Media';
@@ -53,7 +53,7 @@ const ClinicalCases = () => {
   }, []);
 
   const totalCases = casesData.length;
-  const openCases = casesData.filter(c => 
+  const openCases = casesData.filter(c =>
     c.status === 'New' || c.status === 'Working' || c.status === 'Escalated' || !c.status
   ).length;
 
@@ -101,16 +101,16 @@ const ClinicalCases = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Gráfico de Barras - Casos por Prioridad */}
+        {/* Gráfico de Barras - Casos por Prioridad (Mejorado) */}
         <div className="card p-6">
           <h3 className="section-title">Casos por Prioridad</h3>
           <ResponsiveContainer width="100%" height={340}>
-            <BarChart data={casesData.slice(0, 8)}>
+            <BarChart data={priorityData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis dataKey="caseNumber" tick={{ fontSize: 12 }} />
+              <XAxis dataKey="name" />
               <YAxis />
               <Tooltip />
-              <Bar dataKey="priorityScore" fill="#3b82f6" radius={[6, 6, 0, 0]} />   {/* Nota: puedes cambiar priorityScore por otro campo si lo deseas */}
+              <Bar dataKey="value" fill="#3b82f6" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -159,12 +159,12 @@ const ClinicalCases = () => {
                   <td className="py-4 px-4 text-gray-700">{c.subject}</td>
                   <td className="py-4 px-4">
                     <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium
-                          ${c.priority === 'High' || c.priority === 'Alta' ? 'bg-red-100 text-red-700' : 
-                            c.priority === 'Medium' ? 'bg-yellow-100 text-yellow-700' : 
-                            'bg-blue-100 text-blue-700'}`}>
-                      {c.priority === 'High' ? 'Alta' : 
-                       c.priority === 'Medium' ? 'Media' : 
-                       c.priority === 'Low' ? 'Baja' : c.priority}
+                          ${c.priority === 'High' || c.priority === 'Alta' ? 'bg-red-100 text-red-700' :
+                        c.priority === 'Medium' ? 'bg-yellow-100 text-yellow-700' :
+                          'bg-blue-100 text-blue-700'}`}>
+                      {c.priority === 'High' ? 'Alta' :
+                        c.priority === 'Medium' ? 'Media' :
+                          c.priority === 'Low' ? 'Baja' : c.priority}
                     </span>
                   </td>
                   <td className="py-4 px-4">
