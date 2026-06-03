@@ -21,9 +21,15 @@ const ClinicalCases = () => {
 
         setCasesData(records);
 
-        // Agrupación por prioridad para el PieChart
+        // Agrupación por prioridad (adaptado a valores en inglés)
         const priorityMap = records.reduce((acc, curr) => {
-          const prio = curr.priority || 'Media';
+          let prio = curr.priority || 'Medium';
+          
+          // Normalizar nombres para mostrar bonito
+          if (prio === 'High') prio = 'Alta';
+          else if (prio === 'Medium') prio = 'Media';
+          else if (prio === 'Low') prio = 'Baja';
+
           acc[prio] = (acc[prio] || 0) + 1;
           return acc;
         }, {});
@@ -48,8 +54,10 @@ const ClinicalCases = () => {
 
   const totalCases = casesData.length;
   const openCases = casesData.filter(c => 
-    c.status === 'Open' || c.status === 'New' || !c.status
+    c.status === 'New' || c.status === 'Working' || c.status === 'Escalated' || !c.status
   ).length;
+
+  const highPriorityCount = casesData.filter(c => c.priority === 'High' || c.priority === 'Alta').length;
 
   if (loading) {
     return (
@@ -88,14 +96,12 @@ const ClinicalCases = () => {
         </div>
         <div className="card">
           <p className="text-sm text-gray-500">Prioridad Alta</p>
-          <p className="text-5xl font-bold text-orange-600 mt-3">
-            {casesData.filter(c => c.priority === 'Alta').length}
-          </p>
+          <p className="text-5xl font-bold text-orange-600 mt-3">{highPriorityCount}</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Gráfico de Barras */}
+        {/* Gráfico de Barras - Casos por Prioridad */}
         <div className="card p-6">
           <h3 className="section-title">Casos por Prioridad</h3>
           <ResponsiveContainer width="100%" height={340}>
@@ -104,12 +110,12 @@ const ClinicalCases = () => {
               <XAxis dataKey="caseNumber" tick={{ fontSize: 12 }} />
               <YAxis />
               <Tooltip />
-              <Bar dataKey="priorityScore" fill="#3b82f6" radius={[6, 6, 0, 0]} />
+              <Bar dataKey="priorityScore" fill="#3b82f6" radius={[6, 6, 0, 0]} />   {/* Nota: puedes cambiar priorityScore por otro campo si lo deseas */}
             </BarChart>
           </ResponsiveContainer>
         </div>
 
-        {/* Gráfico Circular */}
+        {/* Gráfico Circular - Distribución por Prioridad */}
         <div className="card p-6">
           <h3 className="section-title">Distribución por Prioridad</h3>
           <ResponsiveContainer width="100%" height={340}>
@@ -153,14 +159,16 @@ const ClinicalCases = () => {
                   <td className="py-4 px-4 text-gray-700">{c.subject}</td>
                   <td className="py-4 px-4">
                     <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium
-                          ${c.priority === 'Alta' ? 'bg-red-100 text-red-700' : 
-                            c.priority === 'Media' ? 'bg-yellow-100 text-yellow-700' : 
+                          ${c.priority === 'High' || c.priority === 'Alta' ? 'bg-red-100 text-red-700' : 
+                            c.priority === 'Medium' ? 'bg-yellow-100 text-yellow-700' : 
                             'bg-blue-100 text-blue-700'}`}>
-                      {c.priority}
+                      {c.priority === 'High' ? 'Alta' : 
+                       c.priority === 'Medium' ? 'Media' : 
+                       c.priority === 'Low' ? 'Baja' : c.priority}
                     </span>
                   </td>
                   <td className="py-4 px-4">
-                    <span className="text-emerald-600 font-medium">{c.status || 'Abierto'}</span>
+                    <span className="text-emerald-600 font-medium">{c.status || 'New'}</span>
                   </td>
                 </tr>
               ))}
