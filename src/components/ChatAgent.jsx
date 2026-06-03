@@ -26,11 +26,22 @@ const ChatAgent = () => {
             }
           );
     
-          // NUEVO: Escuchar cuando el bootstrap esté listo y lanzar el comando de apertura
-          window.addEventListener("onEmbeddedMessagingReady", () => {
-            // Lanza el comando nativo para maximizar/abrir el chat automáticamente
-            window.embeddedservice_bootstrap.utilAPI.launchChat();
-          });
+          // --- CAMBIO AQUÍ: INTENTAR ABRIR AUTOMÁTICAMENTE ---
+          const autoOpenInterval = setInterval(() => {
+            if (
+              window.embeddedservice_bootstrap && 
+              window.embeddedservice_bootstrap.utilAPI && 
+              typeof window.embeddedservice_bootstrap.utilAPI.launchChat === 'function'
+            ) {
+              // Ejecuta el comando nativo para abrirlo
+              window.embeddedservice_bootstrap.utilAPI.launchChat();
+              // Limpia el intervalo para que deje de ejecutarse una vez abierto
+              clearInterval(autoOpenInterval);
+            }
+          }, 300);
+    
+          // Limpieza de seguridad por si el componente se desmonta antes de tiempo
+          setTimeout(() => clearInterval(autoOpenInterval), 10000);
     
           setIsLoading(false);
         }
