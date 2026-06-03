@@ -38,7 +38,7 @@ export default async function handler(req, res) {
       SELECT Id, CaseNumber, Subject, Priority, Status, CreatedDate, Account.Name 
       FROM Case 
       ORDER BY CreatedDate DESC 
-      LIMIT 20
+      LIMIT 30
     `;
 
     const result = await conn.query(query);

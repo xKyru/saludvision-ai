@@ -41,7 +41,7 @@ export default async function handler(req, res) {
       FROM Account 
       WHERE Risk_Score__c > 70 
       ORDER BY Risk_Score__c DESC 
-      LIMIT 10
+      LIMIT 20
     `;
 
     const result = await conn.query(query);
