@@ -56,7 +56,7 @@
 }
 
 /* Oculta la cabecera interna nativa de Salesforce dentro de tu contenedor */
-#agentforce-chat-container .embeddedservice-chat-header,
-#agentforce-chat-container .embeddedMessagingConversationHeader {
+#agentforce-chat-container .chatHeader,
+#agentforce-chat-container .headerAnnouncement {
     display: none !important;
 }

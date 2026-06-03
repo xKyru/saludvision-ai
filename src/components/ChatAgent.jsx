@@ -26,49 +26,16 @@ const ChatAgent = () => {
             }
           );
     
-          // --- INTENTAR ABRIR AUTOMÁTICAMENTE E INYECTAR CSS AL IFRAME ---
+          // --- CAMBIO AQUÍ: INTENTAR ABRIR AUTOMÁTICAMENTE ---
           const autoOpenInterval = setInterval(() => {
             if (
               window.embeddedservice_bootstrap && 
               window.embeddedservice_bootstrap.utilAPI && 
               typeof window.embeddedservice_bootstrap.utilAPI.launchChat === 'function'
             ) {
-              // 1. Abrimos el chat
+              // Ejecuta el comando nativo para abrirlo
               window.embeddedservice_bootstrap.utilAPI.launchChat();
-              
-              // 2. Intentamos inyectar el estilo para ocultar su cabecera nativa
-              try {
-                const iframe = document.getElementById('embeddedMessagingFrame');
-                if (iframe && iframe.contentDocument) {
-                  const iframeDoc = iframe.contentDocument;
-                  
-                  // Comprobamos si ya inyectamos el estilo para no duplicarlo
-                  if (!iframeDoc.getElementById('hide-sf-header-style')) {
-                    const style = iframeDoc.createElement('style');
-                    style.id = 'hide-sf-header-style';
-                    
-                    // Apuntamos directo a la etiqueta personalizada y a su clase interna .chatHeader
-                    style.textContent = `
-                      embeddedmessaging-chat-header,
-                      .chatHeader,
-                      .containerArea {
-                        display: none !important;
-                        height: 0 !important;
-                        padding: 0 !important;
-                        margin: 0 !important;
-                        visibility: hidden !important;
-                      }
-                    `;
-                    iframeDoc.head.appendChild(style);
-                  }
-                }
-              } catch (cssError) {
-                // Por si hay temas de origen cruzado en entornos locales extremos, 
-                // aunque al ser subdominio de tu sitio suele aplicar bien.
-                console.warn('No se pudo inyectar el CSS en el iframe debido a políticas de origen:', cssError);
-              }
-          
-              // Limpiamos el intervalo
+              // Limpia el intervalo para que deje de ejecutarse una vez abierto
               clearInterval(autoOpenInterval);
             }
           }, 300);
