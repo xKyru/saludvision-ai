@@ -12,6 +12,12 @@ const ChatAgent = () => {
         if (window.embeddedservice_bootstrap) {
           window.embeddedservice_bootstrap.settings.language = 'es';
           
+          // OBLIGATORIO: Apuntar al contenedor específico de tu HTML
+          const container = document.getElementById('agentforce-chat-container');
+          if (container) {
+            window.embeddedservice_bootstrap.settings.targetElement = container;
+          }
+          
           window.embeddedservice_bootstrap.init(
             '00Dg500000ApMtZ',
             'Agente_SaludVision_Prod',
@@ -42,7 +48,6 @@ const ChatAgent = () => {
 
     document.body.appendChild(bootstrapScript);
 
-    // Limpieza
     return () => {
       if (bootstrapScript && document.body.contains(bootstrapScript)) {
         document.body.removeChild(bootstrapScript);
@@ -66,7 +71,7 @@ const ChatAgent = () => {
 
   return (
     <div className="card h-[680px] flex flex-col overflow-hidden shadow-xl border border-gray-200">
-      {/* Encabezado */}
+      {/* Encabezado Personalizado */}
       <div className="bg-gradient-to-r from-blue-700 to-sky-600 p-5 text-white">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-white/20 backdrop-blur rounded-2xl flex items-center justify-center text-2xl">
@@ -80,9 +85,9 @@ const ChatAgent = () => {
       </div>
 
       {/* Contenedor del Chat */}
-      <div id="agentforce-chat-container" className="flex-1 bg-white relative">
+      <div id="agentforce-chat-container" className="flex-1 bg-white relative embedded-chat-wrapper">
         {isLoading && (
-          <div className="absolute inset-0 flex items-center justify-center">
+          <div className="absolute inset-0 flex items-center justify-center bg-white z-50">
             <div className="text-center">
               <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mx-auto mb-3"></div>
               <p className="text-sm text-gray-500">Cargando asistente...</p>
