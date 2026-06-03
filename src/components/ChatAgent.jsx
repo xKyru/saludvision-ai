@@ -2,15 +2,17 @@ import React, { useEffect } from 'react';
 
 const ChatAgent = () => {
   useEffect(() => {
-    // 1. Asignamos la función de inicialización directamente a window para que bootstrap.min.js la encuentre sin problemas
+    // 1. Asignamos tu nueva función de inicialización directamente al objeto window
     window.initEmbeddedMessaging = function () {
       try {
         if (window.embeddedservice_bootstrap) {
+          // Cambiado a 'es' para que la interfaz e instrucciones del chat estén en español
           window.embeddedservice_bootstrap.settings.language = 'es'; 
+          
           window.embeddedservice_bootstrap.init(
             '00Dg500000ApMtZ',
-            'Agente_de_Servicio_de_Agentforce',
-            'https://orgfarm-5f6fd17f81-dev-ed.develop.my.site.com/ESWAgentedeServicio',
+            'Agente_SaludVision_Prod',
+            'https://orgfarm-5f6fd17f81-dev-ed.develop.my.site.com/ESWAgenteSaludVisionPro1780452286431',
             {
               scrt2URL: 'https://orgfarm-5f6fd17f81-dev-ed.develop.my.salesforce-scrt.com'
             }
@@ -21,11 +23,12 @@ const ChatAgent = () => {
       }
     };
 
-    // 2. Creamos y cargamos el script bootstrap oficial de tu org de Salesforce
+    // 2. Creamos y cargamos el nuevo script bootstrap de tu Sitio Digital
     const bootstrapScript = document.createElement('script');
     bootstrapScript.type = 'text/javascript';
-    bootstrapScript.src = 'https://orgfarm-5f6fd17f81-dev-ed.develop.my.site.com/ESWAgentedeServiciode1780107216442/assets/js/bootstrap.min.js';
+    bootstrapScript.src = 'https://orgfarm-5f6fd17f81-dev-ed.develop.my.site.com/ESWAgenteSaludVisionPro1780452286431/assets/js/bootstrap.min.js';
     
+    // Al cargarse completamente, dispara la inicialización segura
     bootstrapScript.onload = () => {
       if (typeof window.initEmbeddedMessaging === 'function') {
         window.initEmbeddedMessaging();
@@ -34,7 +37,7 @@ const ChatAgent = () => {
 
     document.body.appendChild(bootstrapScript);
 
-    // 3. Limpieza: Al desmontar el componente eliminamos el script y la función global para evitar fugas de memoria
+    // 3. Limpieza al desmontar el componente (evita duplicación del chat si el usuario navega a otra sección)
     return () => {
       if (document.body.contains(bootstrapScript)) {
         document.body.removeChild(bootstrapScript);
@@ -58,9 +61,9 @@ const ChatAgent = () => {
         </div>
       </div>
 
-      {/* Contenedor del Chat de Agentforce */}
+      {/* Contenedor donde Agentforce inyectará el widget */}
       <div id="agentforce-chat-container" className="flex-1 bg-white relative">
-        {/* Aquí se inyectará el widget nativo de Salesforce */}
+        {/* Aquí renderizará de manera nativa */}
       </div>
     </div>
   );
