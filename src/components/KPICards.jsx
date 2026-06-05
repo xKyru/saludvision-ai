@@ -28,15 +28,16 @@ const KPICards = () => {
 
         // Cálculo de Eficiencia Operativa (fórmula lógica)
         const closedCases = cases.length - (casesRes.data.open || 0);
-        let efficiency = 78; // valor base
+        let efficiency = 78;
 
         if (cases.length > 0) {
+          const closedCases = cases.length - (casesRes.data.open || 0);
           efficiency = Math.round(
-            ((closedCases / cases.length) * 100) + 
-            ((patients.length < 6) ? 12 : 0) - 
-            ((casesRes.data.open || 0) > 12 ? 8 : 0)
+            (closedCases / cases.length) * 100 + 
+            (patients.length < 8 ? 12 : 0) - 
+            ((casesRes.data.open || 0) > 15 ? 10 : 0)
           );
-          efficiency = Math.max(65, Math.min(96, efficiency)); // entre 65% y 96%
+          efficiency = Math.max(65, Math.min(96, efficiency));
         }
 
         setKpis({

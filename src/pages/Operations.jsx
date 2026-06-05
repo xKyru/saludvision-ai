@@ -25,31 +25,29 @@ const Operations = () => {
           axios.get('/api/cases'),
           axios.get('/api/patients')
         ]);
-
+    
         const cases = casesRes.data.records || [];
-
-        // Agrupación por Estado para gráfico de barras
-        const statusMap = cases.reduce((acc, curr) => {
-          const status = curr.status || 'New';
-          acc[status] = (acc[status] || 0) + 1;
-          return acc;
-        }, {});
-
-        const statusData = Object.keys(statusMap).map((key, index) => ({
-          name: key,
-          value: statusMap[key],
-          fill: COLORS[index % COLORS.length]
-        }));
-
-        setCasesByStatus(statusData);
-
+        const patients = patientsRes.data.records || [];
+    
+        // === Cálculo Unificado de Eficiencia ===
+        let efficiency = 78;
+        if (cases.length > 0) {
+          const closedCases = cases.length - (casesRes.data.open || 0);
+          efficiency = Math.round(
+            (closedCases / cases.length) * 100 + 
+            (patients.length < 8 ? 12 : 0) - 
+            ((casesRes.data.open || 0) > 15 ? 10 : 0)
+          );
+          efficiency = Math.max(65, Math.min(96, efficiency));
+        }
+    
         setData({
-          totalCases: casesRes.data.total || 0,
+          totalCases: casesRes.data.total || cases.length,
           openCases: casesRes.data.open || 0,
-          highRiskPatients: patientsRes.data.records?.length || 0,
-          efficiency: 84
+          highRiskPatients: patients.length,
+          efficiency: efficiency
         });
-
+    
         setLoading(false);
       } catch (err) {
         console.error(err);
