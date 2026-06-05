@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, LineChart, Line 
+  PieChart, Pie, Cell 
 } from 'recharts';
 
 const COLORS = ['#3b82f6', '#ef4444', '#f59e0b', '#10b981'];
@@ -15,6 +15,7 @@ const Operations = () => {
     efficiency: 82
   });
   const [casesByStatus, setCasesByStatus] = useState([]);
+  const [priorityData, setPriorityData] = useState([]); // Nueva: para pie chart de prioridad
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -27,8 +28,9 @@ const Operations = () => {
         ]);
 
         const cases = casesRes.data.records || [];
+        const patients = patientsRes.data.records || [];
 
-        // Agrupación por Estado para gráfico de barras
+        // === Casos por Estado (para gráfico de barras) ===
         const statusMap = cases.reduce((acc, curr) => {
           const status = curr.status || 'New';
           acc[status] = (acc[status] || 0) + 1;
@@ -41,13 +43,38 @@ const Operations = () => {
           fill: COLORS[index % COLORS.length]
         }));
 
-        setCasesByStatus(statusData);
+        // === Distribución por Prioridad (para gráfico circular) ===
+        const priorityMap = cases.reduce((acc, curr) => {
+          let prio = curr.priority || 'Medium';
+          if (prio === 'High') prio = 'Alta';
+          else if (prio === 'Medium') prio = 'Media';
+          else if (prio === 'Low') prio = 'Baja';
+          acc[prio] = (acc[prio] || 0) + 1;
+          return acc;
+        }, {});
+
+        const prioData = Object.keys(priorityMap).map((key, index) => ({
+          name: key,
+          value: priorityMap[key],
+          fill: COLORS[(index + 1) % COLORS.length]
+        }));
+
+        // Cálculo de Eficiencia
+        let efficiency = 78;
+        if (cases.length > 0) {
+          const closed = cases.length - (casesRes.data.open || 0);
+          efficiency = Math.round((closed / cases.length) * 100 + (patients.length < 8 ? 12 : 0));
+          efficiency = Math.max(65, Math.min(96, efficiency));
+        }
+
+        setCasesByStatus(statusData.length > 0 ? statusData : [{ name: 'Sin datos', value: 1 }]);
+        setPriorityData(prioData);
 
         setData({
-          totalCases: casesRes.data.total || 0,
+          totalCases: casesRes.data.total || cases.length,
           openCases: casesRes.data.open || 0,
-          highRiskPatients: patientsRes.data.records?.length || 0,
-          efficiency: 84
+          highRiskPatients: patients.length,
+          efficiency: efficiency
         });
 
         setLoading(false);
@@ -101,7 +128,7 @@ const Operations = () => {
         <div className="card p-6">
           <h3 className="section-title">Casos por Estado</h3>
           <ResponsiveContainer width="100%" height={340}>
-            <BarChart data={casesByStatus.length > 0 ? casesByStatus : [{name: 'Sin datos', value: 1}]}>
+            <BarChart data={casesByStatus}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
               <XAxis dataKey="name" />
               <YAxis />
@@ -111,27 +138,23 @@ const Operations = () => {
           </ResponsiveContainer>
         </div>
 
-        {/* Gráfico Circular - Distribución Pacientes vs Casos */}
+        {/* Gráfico Circular - Distribución por Prioridad */}
         <div className="card p-6">
-          <h3 className="section-title">Distribución General</h3>
+          <h3 className="section-title">Distribución por Prioridad</h3>
           <ResponsiveContainer width="100%" height={340}>
             <PieChart>
               <Pie
-                data={[
-                  { name: 'Casos Abiertos', value: data.openCases, fill: '#ef4444' },
-                  { name: 'Pacientes Alto Riesgo', value: data.highRiskPatients, fill: '#f59e0b' },
-                  { name: 'Casos Cerrados', value: Math.max(0, data.totalCases - data.openCases), fill: '#10b981' },
-                ]}
+                data={priorityData.length > 0 ? priorityData : [{name: 'Sin datos', value: 1}]}
                 cx="50%"
                 cy="50%"
                 innerRadius={70}
                 outerRadius={120}
                 dataKey="value"
-                label={({ name, percent }) => percent > 8 ? `${name} (${(percent * 100).toFixed(0)}%)` : ''}
+                label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
               >
-                <Cell fill="#ef4444" />
-                <Cell fill="#f59e0b" />
-                <Cell fill="#10b981" />
+                {priorityData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.fill} />
+                ))}
               </Pie>
               <Tooltip />
             </PieChart>
@@ -139,14 +162,14 @@ const Operations = () => {
         </div>
       </div>
 
-      {/* Insight Estratégico Mejorado */}
+      {/* Insight Estratégico */}
       <div className="card mt-8 p-8 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100">
         <h3 className="text-xl font-semibold text-gray-800 mb-4">Insight Estratégico</h3>
         <p className="text-gray-700 leading-relaxed">
           La clínica presenta actualmente <strong>{data.openCases} casos abiertos</strong> y 
           <strong> {data.highRiskPatients} pacientes de alto riesgo</strong>.
-          {data.openCases > 10 && " Se recomienda asignar más recursos al equipo clínico para evitar saturación."}
-          {data.highRiskPatients > 5 && " Los pacientes de alto riesgo requieren seguimiento prioritario."}
+          {data.openCases > 10 && " Se recomienda asignar más recursos al equipo clínico."}
+          {data.highRiskPatients > 8 && " Los pacientes críticos requieren seguimiento inmediato."}
         </p>
       </div>
     </div>
